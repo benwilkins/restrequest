@@ -1,6 +1,5 @@
 <?php
-
-require_once "RestRequestConfig.php";
+namespace ParamoreDigital;
 
 /**
  * Class RestRequest
@@ -9,7 +8,7 @@ require_once "RestRequestConfig.php";
  * @package RestRequest
  * @license Free, whatever. Use however you want :) It'd be a nice gesture to leave my name as the author.
  */
-class RestRequest extends RestRequestConfig
+class RestRequest
 {
     /**
      * @var string
@@ -27,6 +26,10 @@ class RestRequest extends RestRequestConfig
      * @var object
      */
     protected $response;
+    /**
+     * @var array
+     */
+    protected $clientOptions;
 
     // -- End fields
 
@@ -40,8 +43,14 @@ class RestRequest extends RestRequestConfig
 
     /**
      */
-    public function __construct()
+    public function __construct($options = array())
     {
+        $defaultOptions = array(
+            'baseUrl' => '',
+            'requestFormat' => 'JSON',
+            'responseFormat' => 'JSON'
+        );
+        $this->clientOptions = array_merge($defaultOptions, $options);
         $this->httpOptions = array(
             CURLOPT_RETURNTRANSFER => TRUE,
             CURLOPT_FOLLOWLOCATION => FALSE
@@ -124,7 +133,7 @@ class RestRequest extends RestRequestConfig
         $options = array(CURLOPT_POST => TRUE, CURLOPT_POSTFIELDS => $this->params);
 
         if (! empty($this->params)) {
-            if ($this->requestFormat == "JSON") {
+            if ($this->clientOptions['requestFormat'] == "JSON") {
                 $options[CURLOPT_HTTPHEADER] = array('Content-Type: multipart/form-data');
 
             } else {
@@ -162,7 +171,7 @@ class RestRequest extends RestRequestConfig
      */
     protected function sendRequest()
     {
-        $handle = curl_init($this->baseUrl . $this->endPoint);
+        $handle = curl_init($this->clientOptions['baseUrl'] . $this->endPoint);
 
         if (! curl_setopt_array($handle, $this->httpOptions)) {
             throw new RuntimeException("Error setting cURL request options");

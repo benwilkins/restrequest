@@ -8,6 +8,10 @@ Open the RestRequestConfig.php class and set the $baseUrl parameter to be the ba
 
 ## Usage
 
+Define a new client like this:
+
+`$request = new \ParamoreDigital\RestRequest();`
+
 You can set cURL options like this:
 
 `$request->setHttpOptions(array(CURLOPT_HTTPAUTH => CURLAUTH_BASIC, CURLOPT_USERPWD => 'username:password'));`
@@ -15,9 +19,6 @@ You can set cURL options like this:
 You can set parameters like this:
 
 `$request->setParams(array('firstName' => 'Ben', 'lastName' => 'Wilkins'));`
-
-You can even set the format for sending params, either JSON or Form-encoded:
-`$request->setRequestFormat('JSON');`
 
 You can manually set an endpoint:
 
