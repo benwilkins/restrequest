@@ -1,0 +1,17 @@
+{
+    "name": "paramoredigital/rest-request",
+    "description": "A simple PHP class for submitting REST requests via cURL.",
+	"keywords": ["rest","curl"],
+	"type":"library",
+    "authors": [
+        {
+            "name": "Ben Wilkins",
+            "email": "bwilkins@paramoredigital.com"
+        },
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "minimum-stability": "dev",
+	"license": "MIT"
+}
