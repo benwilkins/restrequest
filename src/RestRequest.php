@@ -53,13 +53,14 @@ class RestRequest
         $this->clientOptions = array_merge($defaultOptions, $options);
         $this->httpOptions = array(
             CURLOPT_RETURNTRANSFER => TRUE,
-            CURLOPT_FOLLOWLOCATION => FALSE
+            CURLOPT_FOLLOWLOCATION => FALSE,
+            CURLOPT_TIMEOUT        => 10
         );
     }
 
     /**
      * @param string $endPoint
-     * @throws LogicException
+     * @throws \LogicException
      */
     public function setEndPoint($endPoint)
     {
@@ -68,7 +69,7 @@ class RestRequest
         }
 
         if (! isset($this->endPoint)) {
-            throw new LogicException("No endpoint was set.");
+            throw new \LogicException("No endpoint was set.");
         }
     }
 
@@ -77,7 +78,7 @@ class RestRequest
      */
     public function setHttpOptions($options)
     {
-        $this->httpOptions = array_merge($this->httpOptions, $options);
+        $this->httpOptions = $this->httpOptions + $options;
     }
 
     /**
@@ -130,11 +131,16 @@ class RestRequest
     {
         $this->setEndPoint($endPoint);
 
-        $options = array(CURLOPT_POST => TRUE, CURLOPT_POSTFIELDS => $this->params);
+        $options = array(CURLOPT_POST => TRUE);
 
         if (! empty($this->params)) {
             if ($this->clientOptions['requestFormat'] == "JSON") {
-                $options[CURLOPT_HTTPHEADER] = array('Content-Type: multipart/form-data');
+                $jsonString                  = json_encode($this->params);
+                $options[CURLOPT_POSTFIELDS] = $jsonString;
+                $options[CURLOPT_HTTPHEADER] = array(
+                    'Content-Type: application/json',
+                    'Content-Length: ' . strlen($jsonString)
+                );
 
             } else {
                 $options[CURLOPT_HTTPHEADER] = array('Content-Type: multipart/form-data');
@@ -167,35 +173,39 @@ class RestRequest
     // -- End public methods
 
     /**
-     * @throws RuntimeException
+     * @throws \RuntimeException
      */
     protected function sendRequest()
     {
         $handle = curl_init($this->clientOptions['baseUrl'] . $this->endPoint);
 
         if (! curl_setopt_array($handle, $this->httpOptions)) {
-            throw new RuntimeException("Error setting cURL request options");
+            throw new \RuntimeException("Error setting cURL request options");
         }
 
         $this->response = curl_exec($handle);
-        $this->validateResponse();
+        $this->validateResponse($handle);
         curl_close($handle);
     }
 
     /**
-     * @throws RuntimeException
+     * @param $handle
+     * @throws \RuntimeException
      */
-    protected function validateResponse()
+    protected function validateResponse($handle)
     {
         if (! $this->response) {
-            throw new RuntimeException(curl_error($this->handle), - 1);
+            throw new \RuntimeException(curl_error($handle), - 1);
         }
 
-        $response_info = curl_getinfo($this->handle);
+        $response_info = curl_getinfo($handle);
         $response_code = $response_info['http_code'];
 
+        if (curl_errno($handle))
+            throw new \RuntimeException(curl_errno($handle));
+
         if (! in_array($response_code, range(200, 207))) {
-            throw new RuntimeException($this->response, $response_code);
+            throw new \RuntimeException($this->response, $response_code);
         }
     }
 }
